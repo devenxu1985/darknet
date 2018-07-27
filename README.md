@@ -1,8 +1,11 @@
-![Darknet Logo](http://pjreddie.com/media/files/darknet-black-small.png)
+# darknet_demo
 
-# Darknet #
-Darknet is an open source neural network framework written in C and CUDA. It is fast, easy to install, and supports CPU and GPU computation.
+Modified for training with darknet
 
-For more information see the [Darknet project website](http://pjreddie.com/darknet).
+A modified from original darknet: https://github.com/pjreddie/darknet
 
-For questions or issues please use the [Google Group](https://groups.google.com/forum/#!forum/darknet).
+
+# USAGE
+
+`make`
+`./darknet detector demo cfg/coco.data cfg/yolov3-tiny.cfg yolov3-tiny.weights -c <camera_id>`
