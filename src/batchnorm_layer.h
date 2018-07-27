@@ -14,7 +14,6 @@ void forward_batchnorm_layer_gpu(layer l, network net);
 void backward_batchnorm_layer_gpu(layer l, network net);
 void pull_batchnorm_layer(layer l);
 void push_batchnorm_layer(layer l);
-void forward_custom_batchnorm_gpu(layer l, network net);
 #endif
 
 #endif

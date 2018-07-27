@@ -48,10 +48,6 @@ void upsample_cpu(float *in, int w, int h, int c, int batch, int stride, int for
 #include "cuda.h"
 #include "tree.h"
 
-#ifdef CUSTOM_DEMO
-void custom_gpu(ACTIVATION a, float *output, float *mean, float *variance, float *scales, float *biases, int batch, int n, int size);
-#endif
-
 void axpy_gpu(int N, float ALPHA, float * X, int INCX, float * Y, int INCY);
 void axpy_gpu_offset(int N, float ALPHA, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY);
 void copy_gpu(int N, float * X, int INCX, float * Y, int INCY);

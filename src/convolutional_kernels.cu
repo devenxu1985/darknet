@@ -123,21 +123,13 @@ void forward_convolutional_layer_gpu(convolutional_layer l, network net)
     }
 #endif
 
-
-
     if (l.batch_normalize) {
-#ifdef CUSTOM_DEMO
-	//there are only 2 types of activation used: LEAKY and LINEAR
-	forward_custom_batchnorm_gpu(l, net);
-#else
         forward_batchnorm_layer_gpu(l, net);
-	activate_array_gpu(l.output_gpu, l.outputs*l.batch, l.activation);
-#endif
     } else {
         add_bias_gpu(l.output_gpu, l.biases_gpu, l.batch, l.n, l.out_w*l.out_h);
-	activate_array_gpu(l.output_gpu, l.outputs*l.batch, l.activation);
     }
-    //activate_array_gpu(l.output_gpu, l.outputs*l.batch, l.activation);
+
+    activate_array_gpu(l.output_gpu, l.outputs*l.batch, l.activation);
     //if(l.dot > 0) dot_error_gpu(l);
     if(l.binary || l.xnor) swap_binary(&l);
 }

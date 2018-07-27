@@ -186,21 +186,10 @@ void push_batchnorm_layer(layer l)
     cuda_push_array(l.rolling_variance_gpu, l.rolling_variance, l.c);
 }
 
-void forward_custom_batchnorm_gpu(layer l, network net)
-{
-	//printf("Using custom batchnorm activation!\n");
-	custom_gpu(l.activation, l.output_gpu, l.rolling_mean_gpu, l.rolling_variance_gpu, l.scales_gpu, l.biases_gpu, l.batch, l.out_c, l.out_w*l.out_h);
-}
-
-
-
-
 void forward_batchnorm_layer_gpu(layer l, network net)
 {
     if(l.type == BATCHNORM) copy_gpu(l.outputs*l.batch, net.input_gpu, 1, l.output_gpu, 1);
-#ifndef CUSTOM_DEMO
     copy_gpu(l.outputs*l.batch, l.output_gpu, 1, l.x_gpu, 1);
-#endif
     if (net.train) {
 #ifdef CUDNN
         float one = 1;

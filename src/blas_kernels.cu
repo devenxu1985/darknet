@@ -2,51 +2,13 @@
 #include "curand.h"
 #include "cublas_v2.h"
 #include <assert.h>
-//#include<stdio.h>
+
 extern "C" {
 #include "blas.h"
 #include "cuda.h"
 #include "utils.h"
 }
 
-__global__ void custom_kernel(ACTIVATION a, float *output, float *mean, float *variance, float *scales, float *biases, int n, int size)
-{
-	
-	int offset = blockIdx.x * blockDim.x + threadIdx.x;
-	int filter = blockIdx.y;
-	int batch = blockIdx.z;
-
-	int index = (batch*n+filter)*size + offset;
-
-	float x;
-	x = output[index];
-	//normalize
-	x = (x - mean[filter])/(sqrtf(variance[filter] + .00001f));
-	//scales
-	x *= scales[filter];
-	//biases
-	x += biases[filter];
-	//activate
-	switch (a)
-	{
-		case LINEAR:
-			break;
-		case LEAKY:
-			x = (x>0) ? x : .1f*x;
-			break;
-		default:
-			break;
-	}
-	output[index] = x;
-}
-
-extern "C" void custom_gpu(ACTIVATION a, float *output, float *mean, float *variance, float *scales, float *biases, int batch, int n, int size)
-{
-	//printf("Using custom kernel\n");
-	dim3 dimGrid((size-1)/BLOCK + 1, n, batch);
-	dim3 dimBlock(BLOCK, 1, 1);
-	custom_kernel<<<dimGrid, dimBlock>>>(a, output, mean, variance, scales, biases, n, size);
-}
 __global__ void scale_bias_kernel(float *output, float *biases, int n, int size)
 {
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
@@ -60,7 +22,7 @@ void scale_bias_gpu(float *output, float *biases, int batch, int n, int size)
 {
     dim3 dimGrid((size-1)/BLOCK + 1, n, batch);
     dim3 dimBlock(BLOCK, 1, 1);
-    //printf("%d ", batch*n*size);
+
     scale_bias_kernel<<<dimGrid, dimBlock>>>(output, biases, n, size);
     check_error(cudaPeekAtLastError());
 }
@@ -107,7 +69,7 @@ __global__ void add_bias_kernel(float *output, float *biases, int batch, int n, 
 void add_bias_gpu(float *output, float *biases, int batch, int n, int size)
 {
     int num = n*size*batch;
-    //printf("%d\n", num);
+
     add_bias_kernel<<<cuda_gridsize(num), BLOCK>>>(output, biases, batch, n, size);
     check_error(cudaPeekAtLastError());
 }
@@ -503,7 +465,6 @@ __global__ void mul_kernel(int N, float *X, int INCX, float *Y, int INCY)
 extern "C" void normalize_gpu(float *x, float *mean, float *variance, int batch, int filters, int spatial)
 {
     size_t N = batch*filters*spatial;
-    //printf("%d ", N);
     normalize_kernel<<<cuda_gridsize(N), BLOCK>>>(N, x, mean, variance, batch, filters, spatial);
     check_error(cudaPeekAtLastError());
 }

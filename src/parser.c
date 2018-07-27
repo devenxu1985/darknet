@@ -827,6 +827,11 @@ network *parse_network_cfg(char *filename)
         l.truth = option_find_int_quiet(options, "truth", 0);
         l.onlyforward = option_find_int_quiet(options, "onlyforward", 0);
         l.stopbackward = option_find_int_quiet(options, "stopbackward", 0);
+	l.trainable = option_find_int_quiet(options, "trainable", 0);
+	if (l.trainable)
+	{
+		fprintf(stderr, "	train this layer!\n");
+	}
         l.dontsave = option_find_int_quiet(options, "dontsave", 0);
         l.dontload = option_find_int_quiet(options, "dontload", 0);
         l.dontloadscales = option_find_int_quiet(options, "dontloadscales", 0);
@@ -1197,7 +1202,148 @@ void load_convolutional_weights(layer l, FILE *fp)
     }
 #endif
 }
+//vebits load definition
+float vebits_random() //return random float from -0.1 to +0.1
+{
+	return -0.5;
+	float res;
+	int res_int; res_int = rand()%100;
+	res = 0.1*(res_int - 50)/50;
+	return res;
+}
 
+void load_vebits_weights(layer l, FILE *fp)
+{
+	//init random
+	time_t vebits_t;
+	srand((unsigned) time(&vebits_t));
+	//end init random
+	//read biases and kernel
+	float* biases_buf; biases_buf = malloc(255*sizeof(float));
+	fread(biases_buf, sizeof(float), 255, fp);
+	float* kernel_buf; kernel_buf = malloc(255*l.c*sizeof(float));
+	fread(kernel_buf, sizeof(float), 255*l.c, fp);
+	// end read biases and kernel
+
+	//copy useful info
+	register int i, j, x, mask, in, out;
+	float* new_biases_buf; new_biases_buf = malloc(l.n*sizeof(float));
+	float* new_kernel_buf; new_kernel_buf = malloc(l.c*l.n*sizeof(float));
+	for (i=0; i<l.n; i++)		new_biases_buf[i] = vebits_random();
+	for (i=0; i<l.c*l.n; i++)	new_kernel_buf[i] = vebits_random();
+	//l.c = 256
+	//l.n = 33
+	for (i=0; i<l.n; i++)
+	{
+		x = i%(l.n/3);
+		mask = i/(l.n/3);
+		if (x<5)
+		{                                                         
+			out = i;                                     
+			in  = mask*85 + x;
+			new_biases_buf[out] = biases_buf[in];
+			for (j=0; j<l.c; j++)
+			{
+				out = i*l.c + j;
+				in  = (mask*85 + x)*l.c + j;
+				new_kernel_buf[out] = kernel_buf[in];
+			}
+		}
+		
+		if (x==5) //car
+		{
+                        out = i;
+                        in  = mask*85 + x; in = in + 2;
+                        new_biases_buf[out] = biases_buf[in];
+                        for (j=0; j<l.c; j++)
+                        { 
+                                out = i*l.c + j;
+                                in  = (mask*85 + x)*l.c + j; in = in + 2*l.c;
+                                new_kernel_buf[out] = kernel_buf[in];
+                        }
+                }	
+		if (x==6) //traffic_light
+                {
+                        out = i;
+                        in  = mask*85 + x; in = in + 8;
+                        new_biases_buf[out] = biases_buf[in];
+                        for (j=0; j<l.c; j++)
+                        {
+                                out = i*l.c + j;
+                                in  = (mask*85 + x)*l.c + j; in = in + 8*l.c;
+                                new_kernel_buf[out] = kernel_buf[in];
+                        }
+                }
+		if (x==7) //people
+                {
+                        out = i;
+                        in  = mask*85 + x; in = in - 2;
+                        new_biases_buf[out] = biases_buf[in];
+                        for (j=0; j<l.c; j++)
+                        {
+                                out = i*l.c + j;
+                                in  = (mask*85 + x)*l.c + j; in = in - 2*l.c;
+                                new_kernel_buf[out] = kernel_buf[in];
+                        }
+                }
+		if (x==8) //motorist
+		{                                                         
+			out = i;                                     
+			in  = mask*85 + x;
+			new_biases_buf[out] = biases_buf[in];
+			for (j=0; j<l.c; j++)
+			{
+				out = i*l.c + j;
+				in  = (mask*85 + x)*l.c + j;
+				new_kernel_buf[out] = kernel_buf[in];
+			}
+		}
+		if (x==9) //bus
+                {
+                        out = i;
+                        in  = mask*85 + x; in = in + 1;
+                        new_biases_buf[out] = biases_buf[in];
+                        for (j=0; j<l.c; j++)
+                        {
+                                out = i*l.c + j;
+                                in  = (mask*85 + x)*l.c + j; in = in + 1*l.c;
+                                new_kernel_buf[out] = kernel_buf[in];
+                        }
+                }
+		if (x==10) //truck
+                {
+                        out = i;
+                        in  = mask*85 + x; in = in + 2;
+                        new_biases_buf[out] = biases_buf[in];
+                        for (j=0; j<l.c; j++)
+                        {
+                                out = i*l.c + j;
+                                in  = (mask*85 + x)*l.c + j; in = in + 2*l.c;
+                                new_kernel_buf[out] = kernel_buf[in];
+                        }
+                }
+	}
+
+	//end copy useful info
+
+	//store to last layer
+	for (i=0; i<l.n; i++) 		l.biases[i] = new_biases_buf[i];
+	for (i=0; i<l.c*l.n; i++)	l.weights[i] = new_kernel_buf[i];
+	//end store to last layer
+	//free
+	free(biases_buf);
+	free(kernel_buf);
+	free(new_biases_buf);
+	free(new_kernel_buf);
+	//end free
+#ifdef GPU
+    	if(gpu_index >= 0){
+        	push_convolutional_layer(l);
+    	}
+#endif
+
+}
+//end vebits load definition
 
 void load_weights_upto(network *net, char *filename, int start, int cutoff)
 {
@@ -1229,6 +1375,16 @@ void load_weights_upto(network *net, char *filename, int start, int cutoff)
     int i;
     for(i = start; i < net->n && i < cutoff; ++i){
         layer l = net->layers[i];
+        //vebits modify
+        //if (i==81 || i==93 || i==105)
+	if (i==15||i==22)
+        {
+                load_vebits_weights(l, fp);
+                fprintf(stderr, "\n     Loaded modified weights for layer %d\n", i);
+                fflush(stdout);
+                continue;
+        }
+        //end vebits modify
         if (l.dontload) continue;
         if(l.type == CONVOLUTIONAL || l.type == DECONVOLUTIONAL){
             load_convolutional_weights(l, fp);
@@ -1293,4 +1449,5 @@ void load_weights(network *net, char *filename)
 {
     load_weights_upto(net, filename, 0, net->n);
 }
+
 
