@@ -1202,8 +1202,8 @@ void load_convolutional_weights(layer l, FILE *fp)
     }
 #endif
 }
-//vebits load definition
-float vebits_random() //return random float from -0.1 to +0.1
+//khanh load definition
+float khanh_random() //return random float from -0.1 to +0.1
 {
 	return -0.5;
 	float res;
@@ -1212,11 +1212,11 @@ float vebits_random() //return random float from -0.1 to +0.1
 	return res;
 }
 
-void load_vebits_weights(layer l, FILE *fp)
+void load_khanh_weights(layer l, FILE *fp)
 {
 	//init random
-	time_t vebits_t;
-	srand((unsigned) time(&vebits_t));
+	time_t khanh_t;
+	srand((unsigned) time(&khanh_t));
 	//end init random
 	//read biases and kernel
 	float* biases_buf; biases_buf = malloc(255*sizeof(float));
@@ -1229,100 +1229,11 @@ void load_vebits_weights(layer l, FILE *fp)
 	register int i, j, x, mask, in, out;
 	float* new_biases_buf; new_biases_buf = malloc(l.n*sizeof(float));
 	float* new_kernel_buf; new_kernel_buf = malloc(l.c*l.n*sizeof(float));
-	for (i=0; i<l.n; i++)		new_biases_buf[i] = vebits_random();
-	for (i=0; i<l.c*l.n; i++)	new_kernel_buf[i] = vebits_random();
+		//randomize first
+	for (i=0; i<l.n; i++)		new_biases_buf[i] = khanh_random();
+	for (i=0; i<l.c*l.n; i++)	new_kernel_buf[i] = khanh_random();
 	//l.c = 256
 	//l.n = 33
-	for (i=0; i<l.n; i++)
-	{
-		x = i%(l.n/3);
-		mask = i/(l.n/3);
-		if (x<5)
-		{                                                         
-			out = i;                                     
-			in  = mask*85 + x;
-			new_biases_buf[out] = biases_buf[in];
-			for (j=0; j<l.c; j++)
-			{
-				out = i*l.c + j;
-				in  = (mask*85 + x)*l.c + j;
-				new_kernel_buf[out] = kernel_buf[in];
-			}
-		}
-		
-		if (x==5) //car
-		{
-                        out = i;
-                        in  = mask*85 + x; in = in + 2;
-                        new_biases_buf[out] = biases_buf[in];
-                        for (j=0; j<l.c; j++)
-                        { 
-                                out = i*l.c + j;
-                                in  = (mask*85 + x)*l.c + j; in = in + 2*l.c;
-                                new_kernel_buf[out] = kernel_buf[in];
-                        }
-                }	
-		if (x==6) //traffic_light
-                {
-                        out = i;
-                        in  = mask*85 + x; in = in + 8;
-                        new_biases_buf[out] = biases_buf[in];
-                        for (j=0; j<l.c; j++)
-                        {
-                                out = i*l.c + j;
-                                in  = (mask*85 + x)*l.c + j; in = in + 8*l.c;
-                                new_kernel_buf[out] = kernel_buf[in];
-                        }
-                }
-		if (x==7) //people
-                {
-                        out = i;
-                        in  = mask*85 + x; in = in - 2;
-                        new_biases_buf[out] = biases_buf[in];
-                        for (j=0; j<l.c; j++)
-                        {
-                                out = i*l.c + j;
-                                in  = (mask*85 + x)*l.c + j; in = in - 2*l.c;
-                                new_kernel_buf[out] = kernel_buf[in];
-                        }
-                }
-		if (x==8) //motorist
-		{                                                         
-			out = i;                                     
-			in  = mask*85 + x;
-			new_biases_buf[out] = biases_buf[in];
-			for (j=0; j<l.c; j++)
-			{
-				out = i*l.c + j;
-				in  = (mask*85 + x)*l.c + j;
-				new_kernel_buf[out] = kernel_buf[in];
-			}
-		}
-		if (x==9) //bus
-                {
-                        out = i;
-                        in  = mask*85 + x; in = in + 1;
-                        new_biases_buf[out] = biases_buf[in];
-                        for (j=0; j<l.c; j++)
-                        {
-                                out = i*l.c + j;
-                                in  = (mask*85 + x)*l.c + j; in = in + 1*l.c;
-                                new_kernel_buf[out] = kernel_buf[in];
-                        }
-                }
-		if (x==10) //truck
-                {
-                        out = i;
-                        in  = mask*85 + x; in = in + 2;
-                        new_biases_buf[out] = biases_buf[in];
-                        for (j=0; j<l.c; j++)
-                        {
-                                out = i*l.c + j;
-                                in  = (mask*85 + x)*l.c + j; in = in + 2*l.c;
-                                new_kernel_buf[out] = kernel_buf[in];
-                        }
-                }
-	}
 
 	//end copy useful info
 
@@ -1343,7 +1254,7 @@ void load_vebits_weights(layer l, FILE *fp)
 #endif
 
 }
-//end vebits load definition
+//end khanh load definition
 
 void load_weights_upto(network *net, char *filename, int start, int cutoff)
 {
@@ -1375,16 +1286,16 @@ void load_weights_upto(network *net, char *filename, int start, int cutoff)
     int i;
     for(i = start; i < net->n && i < cutoff; ++i){
         layer l = net->layers[i];
-        //vebits modify
+        //khanh modify
         //if (i==81 || i==93 || i==105)
 	if (i==15||i==22)
         {
-                load_vebits_weights(l, fp);
+                load_khanh_weights(l, fp);
                 fprintf(stderr, "\n     Loaded modified weights for layer %d\n", i);
                 fflush(stdout);
                 continue;
         }
-        //end vebits modify
+        //end khanh modify
         if (l.dontload) continue;
         if(l.type == CONVOLUTIONAL || l.type == DECONVOLUTIONAL){
             load_convolutional_weights(l, fp);
