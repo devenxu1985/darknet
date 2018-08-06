@@ -827,6 +827,15 @@ network *parse_network_cfg(char *filename)
         l.truth = option_find_int_quiet(options, "truth", 0);
         l.onlyforward = option_find_int_quiet(options, "onlyforward", 0);
         l.stopbackward = option_find_int_quiet(options, "stopbackward", 0);
+	l.trainable = option_find_int_quiet(options, "trainable", 0);
+	if (l.trainable)
+	{
+		fprintf(stderr, "	train this layer!\n");
+	}
+	if (option_find_int_quiet(options, "binary", 0))
+	{
+		fprintf(stderr, "	binary layer!\n");
+	}
         l.dontsave = option_find_int_quiet(options, "dontsave", 0);
         l.dontload = option_find_int_quiet(options, "dontload", 0);
         l.dontloadscales = option_find_int_quiet(options, "dontloadscales", 0);
@@ -1198,7 +1207,6 @@ void load_convolutional_weights(layer l, FILE *fp)
 #endif
 }
 
-
 void load_weights_upto(network *net, char *filename, int start, int cutoff)
 {
 #ifdef GPU
@@ -1229,6 +1237,7 @@ void load_weights_upto(network *net, char *filename, int start, int cutoff)
     int i;
     for(i = start; i < net->n && i < cutoff; ++i){
         layer l = net->layers[i];
+
         if (l.dontload) continue;
         if(l.type == CONVOLUTIONAL || l.type == DECONVOLUTIONAL){
             load_convolutional_weights(l, fp);
@@ -1293,4 +1302,5 @@ void load_weights(network *net, char *filename)
 {
     load_weights_upto(net, filename, 0, net->n);
 }
+
 
