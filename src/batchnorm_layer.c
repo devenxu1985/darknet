@@ -198,9 +198,7 @@ void forward_custom_batchnorm_gpu(layer l, network net)
 void forward_batchnorm_layer_gpu(layer l, network net)
 {
     if(l.type == BATCHNORM) copy_gpu(l.outputs*l.batch, net.input_gpu, 1, l.output_gpu, 1);
-#ifndef CUSTOM_DEMO
     copy_gpu(l.outputs*l.batch, l.output_gpu, 1, l.x_gpu, 1);
-#endif
     if (net.train) {
 #ifdef CUDNN
         float one = 1;
