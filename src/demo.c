@@ -240,14 +240,13 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
         if(pthread_create(&fetch_thread, 0, fetch_in_thread, 0)) error("Thread creation failed");
         if(pthread_create(&detect_thread, 0, detect_in_thread, 0)) error("Thread creation failed");
-	if(pthread_create(&display_thread, 0, display_in_thread, 0)) error("Thread creation failed");
+//	if(pthread_create(&display_thread, 0, display_in_thread, 0)) error("Thread creation failed");
 
         pthread_join(fetch_thread, 0);
         pthread_join(detect_thread, 0);
-	pthread_join(display_thread, 0);
+//	pthread_join(display_thread, 0);
         ++count;
-
-	avg_time = 0.99*avg_time + 0.01*(what_time_is_it_now() - demo_time);
+	avg_time = 0.9*avg_time + 0.1*(what_time_is_it_now() - demo_time);
 
         demo_time = what_time_is_it_now();
     }
